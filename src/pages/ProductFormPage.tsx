@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent, type ChangeEvent } from 'react'
+import { useState, type FormEvent, type ChangeEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
@@ -11,7 +11,6 @@ const CATEGORIES: { value: Category; label: string }[] = [
 ]
 
 const IMAGE_FIELDS = ['image1', 'image2', 'image3'] as const
-
 type ImageField = (typeof IMAGE_FIELDS)[number]
 
 interface FormData {
@@ -39,33 +38,39 @@ const EMPTY_FORM: FormData = {
 export default function ProductFormPage() {
   const { id } = useParams<{ id: string }>()
   const isNew = id === 'new'
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
-  const [form, setForm] = useState<FormData>(EMPTY_FORM)
-  const [images, setImages] = useState<Partial<Record<ImageField, File>>>({})
-  const [error, setError] = useState('')
-
-  const { data: product } = useQuery({
+  const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
     queryFn: () => api.get<Product>(`/products/${id}`).then((r) => r.data),
     enabled: !isNew,
   })
 
-  useEffect(() => {
-    if (product) {
-      setForm({
-        name_cs: product.name_cs,
-        name_en: product.name_en,
-        description_cs: product.description_cs,
-        description_en: product.description_en,
-        price: String(product.price),
-        category: product.category,
-        stockCount: String(product.stockCount),
-        active: product.active,
-      })
-    }
-  }, [product])
+  if (!isNew && isLoading) return <div className="p-8 text-sm text-gray-500">Načítám…</div>
+  if (!isNew && !product) return <div className="p-8 text-sm text-red-500">Produkt nenalezen</div>
+
+  return <ProductForm id={id!} isNew={isNew} product={product} />
+}
+
+function ProductForm({ id, isNew, product }: { id: string; isNew: boolean; product?: Product }) {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  const [form, setForm] = useState<FormData>(() =>
+    product
+      ? {
+          name_cs: product.name_cs,
+          name_en: product.name_en,
+          description_cs: product.description_cs,
+          description_en: product.description_en,
+          price: String(product.price),
+          category: product.category,
+          stockCount: String(product.stockCount),
+          active: product.active,
+        }
+      : EMPTY_FORM,
+  )
+  const [images, setImages] = useState<Partial<Record<ImageField, File>>>({})
+  const [error, setError] = useState('')
 
   const save = useMutation({
     mutationFn: async () => {
