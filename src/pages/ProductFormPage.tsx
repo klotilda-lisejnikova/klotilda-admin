@@ -86,10 +86,8 @@ function ProductForm({ id, isNew, product }: { id: string; isNew: boolean; produ
       await Promise.all(
         IMAGE_FIELDS.filter((f) => images[f]).map((field) => {
           const formData = new FormData()
-          formData.append('file', images[field]!)
-          return api.post(`/products/${data.id}/${field}`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          })
+          formData.append(field, images[field]!)
+          return api.post(`/products/${data.id}/${field}`, formData)
         }),
       )
 
