@@ -15,7 +15,6 @@ export interface Product {
 export type OrderStatus = 'new' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
 export type ShippingMethod = 'zasilkovna' | 'ceska_posta' | 'osobni_odber'
-export type PaymentMethod = 'card' | 'qr'
 
 export interface OrderItem {
   productId: string
@@ -37,10 +36,9 @@ export interface Order {
   shippingPrice: number
   items: OrderItem[]
   totalAmount: number
-  paymentMethod: PaymentMethod
+  variableSymbol: string
   paymentStatus: PaymentStatus
   orderStatus: OrderStatus
-  comgateTransactionId: string
   notes: string
   createdAt: string
 }
