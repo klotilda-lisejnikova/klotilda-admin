@@ -1,5 +1,18 @@
 export type Category = 'keramika' | 'textil' | 'vysivky'
 
+/** A file served by the be-core file service (`/api/files`). */
+export interface FileDto {
+  id: string
+  url: string
+  originalName: string | null
+  mimeType: string
+  size: number
+  role: string | null
+  refId: string | null
+  sortOrder: number
+  createdAt: string
+}
+
 export interface Product {
   id: string
   name_cs: string
@@ -10,6 +23,23 @@ export interface Product {
   category: Category
   stockCount: number
   active: boolean
+  /** Image files, ordered by `sortOrder`. Attached by the API. */
+  images: FileDto[]
+}
+
+/** Landing-page gallery is laid out in two fixed rows; each item is pinned to row 1 or 2. */
+export type GalleryRow = 1 | 2
+
+export interface GalleryItem {
+  id: string
+  title_cs: string
+  title_en: string
+  category: Category | ''
+  row: GalleryRow
+  sortOrder: number
+  active: boolean
+  /** Image files (in practice exactly one). Attached by the API. */
+  images: FileDto[]
 }
 
 export type OrderStatus = 'new' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
