@@ -4,6 +4,8 @@ import AdminLayout from './components/layout/AdminLayout'
 import LoginPage from './pages/LoginPage'
 import ProductsPage from './pages/ProductsPage'
 import ProductFormPage from './pages/ProductFormPage'
+import GalleryPage from './pages/GalleryPage'
+import GalleryFormPage from './pages/GalleryFormPage'
 import OrdersPage from './pages/OrdersPage'
 import OrderDetailPage from './pages/OrderDetailPage'
 
@@ -17,6 +19,8 @@ export default function App() {
             <Route index element={<Navigate to="/products" replace />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:id" element={<ProductFormPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/gallery/:id" element={<GalleryFormPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/orders/:id" element={<OrderDetailPage />} />
           </Route>

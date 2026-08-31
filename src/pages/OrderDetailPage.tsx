@@ -17,9 +17,11 @@ const SHIPPING_LABELS: Record<string, string> = {
   osobni_odber: 'Osobní odběr',
 }
 
-const PAYMENT_LABELS: Record<string, string> = {
-  card: 'Platební karta',
-  qr: 'QR kód',
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  pending: 'Čeká na platbu',
+  paid: 'Zaplaceno',
+  failed: 'Selhalo',
+  refunded: 'Vráceno',
 }
 
 export default function OrderDetailPage() {
@@ -32,9 +34,19 @@ export default function OrderDetailPage() {
     queryFn: () => api.get<Order>(`/orders/${id}`).then((r) => r.data),
   })
 
-  const updateStatus = useMutation({
+  const updateOrderStatus = useMutation({
     mutationFn: (orderStatus: OrderStatus) =>
       api.put(`/orders/${id}/status`, { orderStatus }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['order', id] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+
+  // No payment gateway anymore -- this is how "I checked the bank account, the transfer with
+  // this variable symbol arrived" gets recorded.
+  const markPaid = useMutation({
+    mutationFn: () => api.put(`/orders/${id}/status`, { paymentStatus: 'paid' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order', id] })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
@@ -73,11 +85,24 @@ export default function OrderDetailPage() {
         <Section title="Doprava & platba">
           <Row label="Doprava" value={SHIPPING_LABELS[order.shippingMethod] ?? order.shippingMethod} />
           <Row label="Cena dopravy" value={`${order.shippingPrice} Kč`} />
-          <Row label="Způsob platby" value={PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod} />
-          <Row label="Stav platby" value={order.paymentStatus} />
-          {order.comgateTransactionId && (
-            <Row label="Comgate ID" value={<span className="font-mono text-xs">{order.comgateTransactionId}</span>} />
-          )}
+          <Row label="Variabilní symbol" value={<span className="font-mono">{order.variableSymbol}</span>} />
+          <Row
+            label="Stav platby"
+            value={
+              <div className="flex items-center gap-2">
+                <span>{PAYMENT_STATUS_LABELS[order.paymentStatus] ?? order.paymentStatus}</span>
+                {order.paymentStatus !== 'paid' && (
+                  <button
+                    onClick={() => markPaid.mutate()}
+                    disabled={markPaid.isPending}
+                    className="rounded-full bg-emerald-600 px-3 py-0.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    Označit jako zaplaceno
+                  </button>
+                )}
+              </div>
+            }
+          />
         </Section>
 
         <Section title="Položky objednávky">
@@ -100,8 +125,8 @@ export default function OrderDetailPage() {
             {ORDER_STATUS_OPTIONS.map(({ value, label }) => (
               <button
                 key={value}
-                onClick={() => updateStatus.mutate(value)}
-                disabled={updateStatus.isPending}
+                onClick={() => updateOrderStatus.mutate(value)}
+                disabled={updateOrderStatus.isPending}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   order.orderStatus === value
                     ? 'bg-gray-900 text-white'

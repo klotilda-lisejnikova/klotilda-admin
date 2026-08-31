@@ -3,6 +3,7 @@ import { useAuthStore } from '../../store/auth.store'
 
 const navItems = [
   { to: '/products', label: 'Produkty' },
+  { to: '/gallery', label: 'Galerie' },
   { to: '/orders', label: 'Objednávky' },
 ]
 
