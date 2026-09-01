@@ -7,8 +7,8 @@ import type { GalleryItem, Category, GalleryRow } from '../types/api'
 const CATEGORIES: { value: Category | ''; label: string }[] = [
   { value: '', label: '— bez kategorie —' },
   { value: 'keramika', label: 'Keramika' },
-  { value: 'textil', label: 'Textil' },
-  { value: 'vysivky', label: 'Výšivky' },
+  { value: 'vysivka', label: 'Výšivka' },
+  { value: 'linoryt', label: 'Linoryt' },
 ]
 
 const ROWS: GalleryRow[] = [1, 2]

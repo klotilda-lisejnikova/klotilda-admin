@@ -6,8 +6,8 @@ import type { Product, PaginatedResponse } from '../types/api'
 
 const CATEGORY_LABELS: Record<string, string> = {
   keramika: 'Keramika',
-  textil: 'Textil',
-  vysivky: 'Výšivky',
+  vysivka: 'Výšivka',
+  linoryt: 'Linoryt',
 }
 
 export default function ProductsPage() {

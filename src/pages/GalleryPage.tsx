@@ -5,8 +5,8 @@ import type { GalleryItem } from '../types/api'
 
 const CATEGORY_LABELS: Record<string, string> = {
   keramika: 'Keramika',
-  textil: 'Textil',
-  vysivky: 'Výšivky',
+  vysivka: 'Výšivka',
+  linoryt: 'Linoryt',
 }
 
 const ROWS = [1, 2] as const

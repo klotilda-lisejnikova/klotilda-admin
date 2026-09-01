@@ -1,4 +1,4 @@
-export type Category = 'keramika' | 'textil' | 'vysivky'
+export type Category = 'keramika' | 'vysivka' | 'linoryt'
 
 /** A file served by the be-core file service (`/api/files`). */
 export interface FileDto {

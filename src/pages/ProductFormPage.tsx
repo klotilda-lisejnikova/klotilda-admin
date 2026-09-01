@@ -6,8 +6,8 @@ import type { Product, Category } from '../types/api'
 
 const CATEGORIES: { value: Category; label: string }[] = [
   { value: 'keramika', label: 'Keramika' },
-  { value: 'textil', label: 'Textil' },
-  { value: 'vysivky', label: 'Výšivky' },
+  { value: 'vysivka', label: 'Výšivka' },
+  { value: 'linoryt', label: 'Linoryt' },
 ]
 
 interface FormData {
