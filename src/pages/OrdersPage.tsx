@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { api } from '../lib/api'
-import type { Order, OrderStatus, PaymentStatus, PaginatedResponse } from '../types/api'
+import { services } from '../lib/services'
+import type { Order, OrderStatus, PaymentStatus } from '../types/api'
 
-const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+const ORDER_STATUS_LABELS: Record<string, string> = {
   new: 'Nová',
   processing: 'Zpracovávám',
   shipped: 'Odesláno',
@@ -12,14 +12,14 @@ const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   cancelled: 'Zrušeno',
 }
 
-const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
   pending: 'Čeká',
   paid: 'Zaplaceno',
   failed: 'Selhalo',
   refunded: 'Vráceno',
 }
 
-const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
+const ORDER_STATUS_COLORS: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700',
   processing: 'bg-yellow-100 text-yellow-700',
   shipped: 'bg-purple-100 text-purple-700',
@@ -27,7 +27,7 @@ const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
   cancelled: 'bg-gray-100 text-gray-600',
 }
 
-const PAYMENT_STATUS_COLORS: Record<PaymentStatus, string> = {
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-700',
   paid: 'bg-green-100 text-green-700',
   failed: 'bg-red-100 text-red-700',
@@ -39,14 +39,12 @@ export default function OrdersPage() {
   const [orderStatus, setOrderStatus] = useState<OrderStatus | ''>('')
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | ''>('')
 
-  const params = new URLSearchParams({ page: String(page), limit: '20' })
-  if (orderStatus) params.set('orderStatus', orderStatus)
-  if (paymentStatus) params.set('paymentStatus', paymentStatus)
-
+  // NOTE: the status dropdowns are cosmetic — the API's GET /api/orders doesn't filter by status
+  // (never did). Left in place; wiring them up is a backend change.
   const { data, isLoading } = useQuery({
     queryKey: ['orders', page, orderStatus, paymentStatus],
-    queryFn: () =>
-      api.get<PaginatedResponse<Order>>(`/orders?${params}`).then((r) => r.data),
+    queryFn: (): Promise<{ data: Order[]; total: number }> =>
+      services.orders.getAll({ page, limit: 20 }),
   })
 
   const orders = data?.data ?? []
@@ -109,7 +107,9 @@ export default function OrdersPage() {
                       {order.customerFirstName} {order.customerLastName}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString('cs-CZ')}
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleDateString('cs-CZ')
+                        : '—'}
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-gray-900">
                       {order.totalAmount.toLocaleString('cs-CZ')} Kč

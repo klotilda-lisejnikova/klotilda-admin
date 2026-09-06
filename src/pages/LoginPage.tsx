@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth.store'
-import { api } from '../lib/api'
-import type { LoginResponse } from '../types/api'
+import { services } from '../lib/services'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -17,8 +16,8 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const { data } = await api.post<LoginResponse>('/auth/login', { email, password })
-      login(data.token, data.email)
+      const res = await services.auth.login({ email, password })
+      login(res.token, res.email)
       navigate('/products')
     } catch {
       setError('Nesprávný email nebo heslo.')

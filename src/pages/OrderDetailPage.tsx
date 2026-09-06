@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../lib/api'
-import type { Order, OrderStatus } from '../types/api'
+import { services } from '../lib/services'
+import type { OrderStatus } from '../types/api'
 
 const ORDER_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
   { value: 'new', label: 'Nová' },
@@ -31,12 +31,12 @@ export default function OrderDetailPage() {
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', id],
-    queryFn: () => api.get<Order>(`/orders/${id}`).then((r) => r.data),
+    queryFn: () => services.orders.getById(id!),
   })
 
   const updateOrderStatus = useMutation({
     mutationFn: (orderStatus: OrderStatus) =>
-      api.put(`/orders/${id}/status`, { orderStatus }),
+      services.orders.updateStatus(id!, { orderStatus }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order', id] })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
@@ -46,7 +46,7 @@ export default function OrderDetailPage() {
   // No payment gateway anymore -- this is how "I checked the bank account, the transfer with
   // this variable symbol arrived" gets recorded.
   const markPaid = useMutation({
-    mutationFn: () => api.put(`/orders/${id}/status`, { paymentStatus: 'paid' }),
+    mutationFn: () => services.orders.updateStatus(id!, { paymentStatus: 'paid' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order', id] })
       queryClient.invalidateQueries({ queryKey: ['orders'] })

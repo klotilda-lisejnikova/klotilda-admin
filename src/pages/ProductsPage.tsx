@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { api } from '../lib/api'
-import type { Product, PaginatedResponse } from '../types/api'
+import { services } from '../lib/services'
+import type { Product } from '../types/api'
 
 const CATEGORY_LABELS: Record<string, string> = {
   keramika: 'Keramika',
@@ -16,18 +16,17 @@ export default function ProductsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['products', page],
-    queryFn: () =>
-      api.get<PaginatedResponse<Product>>(`/products?page=${page}&limit=20`).then((r) => r.data),
+    queryFn: () => services.products.getAll({ page, limit: 20 }),
   })
 
   const toggleActive = useMutation({
     mutationFn: (product: Product) =>
-      api.put(`/products/${product.id}`, { active: !product.active }),
+      services.products.update(product.id, { active: !product.active }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
   })
 
   const deleteProduct = useMutation({
-    mutationFn: (id: string) => api.delete(`/products/${id}`),
+    mutationFn: (id: string) => services.products.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
   })
 
@@ -76,7 +75,9 @@ export default function ProductsPage() {
                 {products.map((product) => (
                   <tr key={product.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-900">{product.name_cs}</td>
-                    <td className="px-4 py-3 text-gray-600">{CATEGORY_LABELS[product.category] ?? product.category}</td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {product.category ? (CATEGORY_LABELS[product.category] ?? product.category) : '—'}
+                    </td>
                     <td className="px-4 py-3 text-right text-gray-900">{product.price.toLocaleString('cs-CZ')} Kč</td>
                     <td className="px-4 py-3 text-right">
                       <span className={`font-medium ${product.stockCount > 0 ? 'text-green-600' : 'text-red-500'}`}>

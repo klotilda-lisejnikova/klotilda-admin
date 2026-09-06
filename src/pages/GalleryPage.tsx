@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { api } from '../lib/api'
+import { services } from '../lib/services'
 import type { GalleryItem } from '../types/api'
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -16,16 +16,16 @@ export default function GalleryPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['gallery'],
-    queryFn: () => api.get<{ data: GalleryItem[] }>('/gallery').then((r) => r.data.data),
+    queryFn: () => services.gallery.getAll().then((r) => r.data),
   })
 
   const toggleActive = useMutation({
-    mutationFn: (item: GalleryItem) => api.put(`/gallery/${item.id}`, { active: !item.active }),
+    mutationFn: (item: GalleryItem) => services.gallery.update(item.id, { active: !item.active }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['gallery'] }),
   })
 
   const remove = useMutation({
-    mutationFn: (id: string) => api.delete(`/gallery/${id}`),
+    mutationFn: (id: string) => services.gallery.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['gallery'] }),
   })
 

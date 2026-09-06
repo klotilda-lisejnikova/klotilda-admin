@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ChangeEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../lib/api'
+import { services } from '../lib/services'
 import type { Product, Category } from '../types/api'
 
 const CATEGORIES: { value: Category; label: string }[] = [
@@ -32,23 +32,13 @@ const EMPTY_FORM: FormData = {
   active: true,
 }
 
-async function uploadProductImage(productId: string, file: File, sortOrder: number) {
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('refType', 'Product')
-  formData.append('refId', productId)
-  formData.append('role', 'image')
-  formData.append('sortOrder', String(sortOrder))
-  return api.post('/files', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-}
-
 export default function ProductFormPage() {
   const { id } = useParams<{ id: string }>()
   const isNew = id === 'new'
 
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
-    queryFn: () => api.get<Product>(`/products/${id}`).then((r) => r.data),
+    queryFn: () => services.products.getById(id!),
     enabled: !isNew,
   })
 
@@ -66,11 +56,11 @@ function ProductForm({ id, isNew, product }: { id: string; isNew: boolean; produ
     product
       ? {
           name_cs: product.name_cs,
-          name_en: product.name_en,
-          description_cs: product.description_cs,
-          description_en: product.description_en,
+          name_en: product.name_en ?? '',
+          description_cs: product.description_cs ?? '',
+          description_en: product.description_en ?? '',
           price: String(product.price),
-          category: product.category,
+          category: (product.category as Category) ?? 'keramika',
           stockCount: String(product.stockCount),
           active: product.active,
         }
@@ -88,12 +78,12 @@ function ProductForm({ id, isNew, product }: { id: string; isNew: boolean; produ
         price: parseFloat(form.price),
         stockCount: parseInt(form.stockCount),
       }
-      const { data } = isNew
-        ? await api.post<Product>('/products', payload)
-        : await api.put<Product>(`/products/${id}`, payload)
+      const data = isNew
+        ? await services.products.create(payload)
+        : await services.products.update(id, payload)
 
       for (let i = 0; i < newFiles.length; i++) {
-        await uploadProductImage(data.id, newFiles[i], existingImages.length + i)
+        await services.products.uploadImage(data.id, newFiles[i], existingImages.length + i)
       }
 
       return data
@@ -106,7 +96,7 @@ function ProductForm({ id, isNew, product }: { id: string; isNew: boolean; produ
   })
 
   const deleteImage = useMutation({
-    mutationFn: (fileId: string) => api.delete(`/files/${fileId}`),
+    mutationFn: (fileId: string) => services.products.deleteImage(fileId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['product', id] }),
   })
 

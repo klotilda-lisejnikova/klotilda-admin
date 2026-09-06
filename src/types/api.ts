@@ -1,86 +1,21 @@
-export type Category = 'keramika' | 'vysivka' | 'linoryt'
+// Types now come from the shared package instead of being hand-duplicated here. Kept as a
+// re-export barrel so page imports (`from '../types/api'`) don't all need to change.
+import type { orderEntity } from '@klotilda-lisejnikova/klotilda-service'
 
-/** A file served by the be-core file service (`/api/files`). */
-export interface FileDto {
-  id: string
-  url: string
-  originalName: string | null
-  mimeType: string
-  size: number
-  role: string | null
-  refId: string | null
-  sortOrder: number
-  createdAt: string
-}
+export type {
+  ProductCategory as Category,
+  ProductDto as Product,
+  ProductImage as FileDto,
+  GalleryItemDto as GalleryItem,
+  GalleryRow,
+  ShippingMethod,
+  PaymentStatus,
+  OrderStatus,
+  CartItem as OrderItem,
+  LoginResponse,
+} from '@klotilda-lisejnikova/klotilda-service'
 
-export interface Product {
-  id: string
-  name_cs: string
-  name_en: string
-  description_cs: string
-  description_en: string
-  price: number
-  category: Category
-  stockCount: number
-  active: boolean
-  /** Image files, ordered by `sortOrder`. Attached by the API. */
-  images: FileDto[]
-}
+export type { PaginatedResponse } from '@eleansphere/service-core'
 
-/** Landing-page gallery is laid out in two fixed rows; each item is pinned to row 1 or 2. */
-export type GalleryRow = 1 | 2
-
-export interface GalleryItem {
-  id: string
-  title_cs: string
-  title_en: string
-  category: Category | ''
-  row: GalleryRow
-  sortOrder: number
-  active: boolean
-  /** Image files (in practice exactly one). Attached by the API. */
-  images: FileDto[]
-}
-
-export type OrderStatus = 'new' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
-export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
-export type ShippingMethod = 'zasilkovna' | 'ceska_posta' | 'osobni_odber'
-
-export interface OrderItem {
-  productId: string
-  name: string
-  price: number
-  quantity: number
-}
-
-export interface Order {
-  id: string
-  customerFirstName: string
-  customerLastName: string
-  customerEmail: string
-  customerPhone: string
-  street: string
-  city: string
-  zip: string
-  shippingMethod: ShippingMethod
-  shippingPrice: number
-  items: OrderItem[]
-  totalAmount: number
-  variableSymbol: string
-  paymentStatus: PaymentStatus
-  orderStatus: OrderStatus
-  notes: string
-  createdAt: string
-}
-
-export interface PaginatedResponse<T> {
-  data: T[]
-  total: number
-  page: number
-  limit: number
-}
-
-export interface LoginResponse {
-  token: string
-  email: string
-}
+/** Read shape of an order. `items` arrives as a JSON string (the API's `TEXT` column). */
+export type Order = InstanceType<typeof orderEntity.Dto>

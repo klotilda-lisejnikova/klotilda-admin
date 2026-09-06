@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ChangeEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../lib/api'
+import { services } from '../lib/services'
 import type { GalleryItem, Category, GalleryRow } from '../types/api'
 
 const CATEGORIES: { value: Category | ''; label: string }[] = [
@@ -31,23 +31,13 @@ const EMPTY_FORM: FormData = {
   active: true,
 }
 
-async function uploadGalleryImage(itemId: string, file: File, sortOrder: number) {
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('refType', 'GalleryItem')
-  formData.append('refId', itemId)
-  formData.append('role', 'image')
-  formData.append('sortOrder', String(sortOrder))
-  return api.post('/files', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-}
-
 export default function GalleryFormPage() {
   const { id } = useParams<{ id: string }>()
   const isNew = id === 'new'
 
   const { data: item, isLoading } = useQuery({
     queryKey: ['gallery-item', id],
-    queryFn: () => api.get<GalleryItem>(`/gallery/${id}`).then((r) => r.data),
+    queryFn: () => services.gallery.getById(id!),
     enabled: !isNew,
   })
 
@@ -65,8 +55,8 @@ function GalleryForm({ id, isNew, item }: { id: string; isNew: boolean; item?: G
     item
       ? {
           title_cs: item.title_cs,
-          title_en: item.title_en,
-          category: item.category,
+          title_en: item.title_en ?? '',
+          category: item.category ?? '',
           row: item.row,
           sortOrder: String(item.sortOrder),
           active: item.active,
@@ -85,12 +75,12 @@ function GalleryForm({ id, isNew, item }: { id: string; isNew: boolean; item?: G
         row: Number(form.row),
         sortOrder: parseInt(form.sortOrder) || 0,
       }
-      const { data } = isNew
-        ? await api.post<GalleryItem>('/gallery', payload)
-        : await api.put<GalleryItem>(`/gallery/${id}`, payload)
+      const data = isNew
+        ? await services.gallery.create(payload)
+        : await services.gallery.update(id, payload)
 
       for (let i = 0; i < newFiles.length; i++) {
-        await uploadGalleryImage(data.id, newFiles[i], existingImages.length + i)
+        await services.gallery.uploadImage(data.id, newFiles[i], existingImages.length + i)
       }
       return data
     },
@@ -102,7 +92,7 @@ function GalleryForm({ id, isNew, item }: { id: string; isNew: boolean; item?: G
   })
 
   const deleteImage = useMutation({
-    mutationFn: (fileId: string) => api.delete(`/files/${fileId}`),
+    mutationFn: (fileId: string) => services.gallery.deleteImage(fileId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['gallery-item', id] }),
   })
 
