@@ -15,7 +15,7 @@ export type {
   LoginResponse,
 } from '@klotilda-lisejnikova/klotilda-service'
 
-export type { PaginatedResponse } from '@eleansphere/service-core'
+export type { PaginatedResponse } from '@eleansphere/entity-core'
 
 /** Read shape of an order. `items` arrives as a JSON string (the API's `TEXT` column). */
 export type Order = InstanceType<typeof orderEntity.Dto>
